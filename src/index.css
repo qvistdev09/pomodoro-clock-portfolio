@@ -50,6 +50,11 @@ code {
   color: white;
   font-size: 1rem;
   padding: 1.5rem;
+  transition: all 0.5s;
+}
+
+.container.chill {
+  background-color: rgb(7, 196, 0);
 }
 
 .grid-item {
@@ -136,6 +141,18 @@ hr {
   border-width: 3px;
   border-radius: 4px;
   margin: 0.3rem;
+}
+
+.crazy1 {
+  position: relative;
+  bottom: 0.1rem;
+  color: rgb(255, 212, 70);
+}
+
+.crazy2 {
+  color: rgb(0, 255, 255);
+  position: relative;
+  top: 0.1rem;
 }
 
 /*   

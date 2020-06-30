@@ -1,4 +1,5 @@
 import React from 'react';
+import chime from './sounds/chime.wav';
 
 class App extends React.Component {
   constructor(props) {
@@ -6,10 +7,12 @@ class App extends React.Component {
     this.activeSession = false;
     this.pomodoring = false;
     this.intervalFunc = null;
+    this.chime = new Audio(chime);
+    this.chimeObject = null;
     this.state = {
       goingToBreak: true,
-      breakLength: 2,
-      sessionLength: 1,
+      breakLength: 5,
+      sessionLength: 25,
       currentMinutes: 0,
       currentSeconds: 0,
     };
@@ -19,7 +22,13 @@ class App extends React.Component {
     this.pomodoroReset = this.pomodoroReset.bind(this);
   }
 
+  componentDidMount() {
+    this.chimeObject = document.getElementById('beep');
+  }
+
   pomodoroReset() {
+    this.chimeObject.pause();
+    this.chimeObject.currentTime = 0;
     this.activeSession = false;
     this.pomodoring = false;
     clearInterval(this.intervalFunc);
@@ -39,6 +48,7 @@ class App extends React.Component {
 
   pomodoroStart() {
     if (this.pomodoring) {
+      this.pomodoroStop();
       return;
     }
 
@@ -59,16 +69,17 @@ class App extends React.Component {
         currentSeconds: state.currentSeconds - 1,
       }));
       if (this.state.currentMinutes === 0 && this.state.currentSeconds < 0) {
+        this.chimeObject.play();
         if (this.state.goingToBreak) {
           this.setState((state) => ({
-            currentMinutes: state.breakLength - 1,
-            currentSeconds: 59,
+            currentMinutes: state.breakLength,
+            currentSeconds: 0,
             goingToBreak: false,
           }));
         } else {
           this.setState((state) => ({
-            currentMinutes: state.sessionLength - 1,
-            currentSeconds: 59,
+            currentMinutes: state.sessionLength,
+            currentSeconds: 0,
             goingToBreak: true,
           }));
         }
@@ -78,7 +89,7 @@ class App extends React.Component {
           currentMinutes: state.currentMinutes - 1,
         }));
       }
-    }, 50);
+    }, 1000);
   }
 
   changeLength(value, property) {
@@ -89,7 +100,7 @@ class App extends React.Component {
     if (this.state[property] === 1 && value === -1) {
       return;
     }
-    if (this.state[property] === 30 && value === 1) {
+    if (this.state[property] === 60 && value === 1) {
       return;
     }
     this.setState((state) => ({
@@ -100,49 +111,68 @@ class App extends React.Component {
 
   render() {
     return (
-      <div className="container">
+      <div
+        className={this.state.goingToBreak ? 'container' : 'container chill'}
+      >
         <div className="grid-item m-small d-col" style={{ gridArea: 'title' }}>
-          <h1>POMODORO CLOCK</h1>
+          <h1>
+            PO<span className="crazy1">M</span>O
+            <span className="crazy2">D</span>ORO CLOCK
+          </h1>
           <hr />
         </div>
         <div className="grid-item-grid m-small" style={{ gridArea: 'break' }}>
           <div className="grid-item align-end">
-            <p>Break length</p>
+            <p id="break-label">Break Length</p>
           </div>
           <div className="grid-item">
             <i
               className="fas fa-chevron-circle-left clickable"
               onClick={() => this.changeLength(-1, 'breakLength')}
+              id="break-decrement"
             ></i>
-            <p className="length-nr">{this.state.breakLength}</p>
+            <p className="length-nr" id="break-length">
+              {this.state.breakLength}
+            </p>
             <i
               className="fas fa-chevron-circle-right clickable"
               onClick={() => this.changeLength(1, 'breakLength')}
+              id="break-increment"
             ></i>
           </div>
         </div>
         <div className="grid-item-grid m-small" style={{ gridArea: 'session' }}>
           <div className="grid-item align-end">
-            <p>Session length</p>
+            <p id="session-label">Session Length</p>
           </div>
           <div className="grid-item">
             <i
               className="fas fa-chevron-circle-left clickable"
               onClick={() => this.changeLength(-1, 'sessionLength')}
+              id="session-decrement"
             ></i>
-            <p className="length-nr">{this.state.sessionLength}</p>
+            <p className="length-nr" id="session-length">
+              {this.state.sessionLength}
+            </p>
             <i
               className="fas fa-chevron-circle-right clickable"
               onClick={() => this.changeLength(1, 'sessionLength')}
+              id="session-increment"
             ></i>
           </div>
         </div>
         <div className="grid-item-grid m-small" style={{ gridArea: 'timer' }}>
-          <div className="grid-item align-end">Session</div>
+          <div className="grid-item align-end" id="timer-label">
+            {this.state.goingToBreak ? 'Session' : 'Break'}
+          </div>
           <div className="grid-item">
-            <p className="timer">
-              {this.pomodoring
+            <p className="timer" id="time-left">
+              {this.pomodoring && this.state.currentMinutes > 9
                 ? this.state.currentMinutes + ':'
+                : this.pomodoring && this.state.currentMinutes < 10
+                ? '0' + this.state.currentMinutes + ':'
+                : !this.pomodoring && this.state.sessionLength < 10
+                ? '0' + this.state.sessionLength + ':'
                 : this.state.sessionLength + ':'}
               {!this.pomodoring
                 ? '00'
@@ -151,11 +181,20 @@ class App extends React.Component {
                 : this.state.currentSeconds}
             </p>
           </div>
+          <audio src={this.chime.src} id="beep" />
         </div>
         <div className="grid-item m-small" style={{ gridArea: 'controls' }}>
-          <i className="fas fa-play clickable" onClick={this.pomodoroStart}></i>
+          <i
+            id="start_stop"
+            className="fas fa-play clickable"
+            onClick={this.pomodoroStart}
+          ></i>
           <i className="fas fa-pause clickable" onClick={this.pomodoroStop}></i>
-          <i className="fas fa-redo-alt clickable" onClick={this.pomodoroReset}></i>
+          <i
+            id="reset"
+            className="fas fa-redo-alt clickable"
+            onClick={this.pomodoroReset}
+          ></i>
         </div>
         <div className="grid-item m-small d-col" style={{ gridArea: 'cred' }}>
           <p className="cred">
@@ -167,9 +206,6 @@ class App extends React.Component {
             >
               Qvistsson
             </a>
-          </p>
-          <p className="cred">
-            {this.state.goingToBreak ? 'Work time!' : 'Break!'}
           </p>
         </div>
       </div>
