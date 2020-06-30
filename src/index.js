@@ -6,6 +6,7 @@ import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
+    <i className="fas fa-seedling decoleaf"></i>
     <App />
   </React.StrictMode>,
   document.getElementById('root')
